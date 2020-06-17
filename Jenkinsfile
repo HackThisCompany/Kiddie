@@ -7,17 +7,32 @@ def kiddie_sshkey = "kiddie.id_rsa"
 pipeline {
     agent any
     
+    parameters {
+        string(
+            name: 'Kiddieterraformbranch', defaultValue: 'master',
+            description: 'Which Kiddie-terraform branch should be used?'
+        )
+        string(
+            name: 'DC9ansiblebranch', defaultValue: 'htc',
+            description: 'Which DC-9-ansible branch should be used?'
+        )
+        string(
+            name: 'WintermuteStraylightansiblebranch', defaultValue: 'master',
+            description: 'Which Wintermute-Straylight-ansible branch should be used?'
+        )
+    }
+
     stages {
         stage('Clone repos') {
             steps {
                 dir('Kiddie-terraform') {
-                    git url: "${github_baseurl}/Kiddie-terraform.git", branch: 'master'
+                    git url: "${github_baseurl}/Kiddie-terraform.git", branch: "${params.Kiddieterraformbranch}"
                 }
                 dir('DC-9-ansible') {
-                    git url: "${github_baseurl}/DC-9-ansible.git", branch: 'htc'
+                    git url: "${github_baseurl}/DC-9-ansible.git", branch: "${params.DC9ansiblebranch}"
                 }
                 dir('Wintermute-Straylight-ansible') {
-                    git url: "${github_baseurl}/Wintermute-Straylight-ansible.git", branch: 'master'
+                    git url: "${github_baseurl}/Wintermute-Straylight-ansible.git", branch: "${params.WintermuteStraylightansiblebranch}"
                 }
             }
         }
@@ -139,3 +154,4 @@ pipeline {
         }
     }
 }
+

@@ -1,4 +1,4 @@
-def awsCredentials = 'AWS-HackThisCompany'
+def awsCredentials = 'AWS-Kiddie'
 def github_baseurl = "https://github.com/HackThisCompany"
 
 def terraform_tfvars = 'htc-kiddie-test.tfvars'

@@ -1,0 +1,60 @@
+def awsCredentials = 'AWS-HackThisCompany'
+def github_baseurl = "https://github.com/HackThisCompany"
+
+def terraform_tfvars = 'htc-kiddie-test.tfvars'
+def kiddie_sshkey = "kiddie.id_rsa"
+
+pipeline {
+    agent any
+
+    parameters {
+        string(
+            name: 'Kiddieterraformbranch', defaultValue: 'master',
+            description: 'Which Kiddie-terraform branch should be used?'
+        )
+    }
+
+    stages {
+        stage('Clone repos') {
+            steps {
+                dir('Kiddie-terraform') {
+                    git url: "${github_baseurl}/Kiddie-terraform.git", branch: "${params.Kiddieterraformbranch}"
+                }
+            }
+        }
+        stage('Terraform destroy') {
+            steps {
+                withAWS(credentials: "${awsCredentials}"){
+                    dir('Kiddie-terraform') {
+                        sh """
+                        terraform init
+                        """
+                        sh """
+                        terraform workspace select test
+                        """
+                        sh """
+                        [ ! -f "${terraform_tfvars}" ] && cat > "${terraform_tfvars}" <<EOF
+                        tags = {
+                            Project            = "HackThisCompany"
+                            Environment        = "test"
+                        }
+                        local_privkey_path = "${env.WORKSPACE}/kiddie.id_rsa"
+                        EOF
+                        """.stripIndent()
+                        sh """
+                        cat "${terraform_tfvars}"
+                        """
+                        sh """
+                        terraform destroy --var-file ${terraform_tfvars} --auto-approve
+                        """
+                    }
+                }
+            }
+        }
+    }
+    post {
+        cleanup {
+            cleanWs()
+        }
+    }
+}

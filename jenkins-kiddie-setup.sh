@@ -236,11 +236,13 @@ cat <<EOF
 1) Disable "script security for Job DSL scripts":
      Go to ${KIDDIE_JENKINS_URL}/configureSecurity/ and uncheck "Enable script
      security for Job DSL scripts"
-2) Run seed job to generate Kiddie jobs: ${KIDDIE_JENKINS_URL}/job/Kiddie_seed/
-3) Use Kiddie/Deploy and Kiddie/Destroy jobs to manage the scenario in your AWS account:
+2) Download ansible and terraform inside Jenkins and add them to the JENKINS PATH.
+
+3) Run seed job to generate Kiddie jobs: ${KIDDIE_JENKINS_URL}/job/Kiddie_seed/
+4) Use Kiddie/Deploy and Kiddie/Destroy jobs to manage the scenario in your AWS account:
      - ${KIDDIE_JENKINS_URL}/job/Kiddie/job/Deploy
      - ${KIDDIE_JENKINS_URL}/job/Kiddie/job/Destroy
-4) Enjoy :)
+5) Enjoy :)
 
 ================================
 

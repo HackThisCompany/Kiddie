@@ -42,9 +42,7 @@ pipeline {
                     withCredentials([sshUserPrivateKey(credentialsId: "${kiddie_sshkey}", keyFileVariable: 'kiddie_sshkeyfile')]) {
                         sh """
                         cp "${kiddie_sshkeyfile}" "${env.WORKSPACE}/kiddie.id_rsa"
-                        """
-                        sh """
-                        cat "${env.WORKSPACE}/kiddie.id_rsa"
+                        chmod 400 ${env.WORKSPACE}/kiddie.id_rsa
                         """
                         dir('Kiddie-terraform') {
                             sh """
@@ -90,10 +88,13 @@ pipeline {
         
         stage('Wait for servers to be ready') {
             steps {
-                sh """
+                sh """#!/bin/bash
                 export ANSIBLE_HOST_KEY_CHECKING=False
+                counter=0
                 while ! ansible all -i ${env.WORKSPACE}/ansibleinventory.json -m ping -e ansible_python_interpreter=python
                 do
+                    [ "\$counter" -gt 5 ] && exit 1
+                    ((counter+=1))
                     sleep 5
                 done
                 """

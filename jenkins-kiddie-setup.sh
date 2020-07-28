@@ -32,13 +32,12 @@ KIDDIE_JENKINS_CREDENTIALS_FILE="$HOME/.jenkins.credentials"
 #################################################################
 #    1. SETUP
 #################################################################
-
 # Create tmp directory
 TMP=$(mktemp -d) && cd $TMP
 trap "rm -rf ${TMP}" EXIT
 
 echo '--------------------------------'
-# Check requirements
+# Create kiddie pubkey in local
 echo "[*] Checking AWS Credentials"
 aws sts get-caller-identity --profile ${KIDDIE_AWS_CREDENTIALS_PROFILE}
 
@@ -47,6 +46,27 @@ then
   echo >&2 "[!] File ${KIDDIE_SSH_PRIVATE_KEY_FILE} was not found."
   read -n 1 -r -s -p "[*] Press [ENTER] to force ${KIDDIE_SSH_PRIVATE_KEY_FILE} generation..." && echo
   ssh-keygen -f ${KIDDIE_SSH_PRIVATE_KEY_FILE}
+fi
+
+# Create kiddie pubkey in AWS
+KIDDIE_PUBKEY=$( aws ec2 --profile ${KIDDIE_AWS_CREDENTIALS_PROFILE} describe-key-pairs --query 'KeyPairs' --output text | awk '/\tkiddie\t/' )
+[ ! -f "${KIDDIE_SSH_PRIVATE_KEY_FILE}.pub" ] && \
+  ssh-keygen -y -f ${KIDDIE_SSH_PRIVATE_KEY_FILE} > ${KIDDIE_SSH_PRIVATE_KEY_FILE}.pub
+
+if [ -z "$KIDDIE_PUBKEY" ]
+then
+  echo "[*] Kiddie pubkey was not found in AWS. Uploading..."
+  aws ec2 --profile ${KIDDIE_AWS_CREDENTIALS_PROFILE} import-key-pair --key-name "kiddie" --public-key-material file://${KIDDIE_SSH_PRIVATE_KEY_FILE}.pub
+else
+  AWS_FINGERPRINT=$( awk '{print $1}' <<< $KIDDIE_PUBKEY )
+  MD5_FINGERPRINT=$( ssh-keygen -e -f ${KIDDIE_SSH_PRIVATE_KEY_FILE}.pub -m pkcs8 | openssl pkey -pubin -outform der | openssl md5 -c | awk '{print $2}' )
+  if [[ "${AWS_FINGERPRINT}" == "${MD5_FINGERPRINT}" ]]
+  then
+    echo "[*] Kiddie pubkey is already uploaded. Continuing..."
+  else
+    echo >&2 "[!] Kiddie pubkey is already uploaded but it has diferent fingerprint. Delete it manually and execute the script again."
+    exit 1
+  fi
 fi
 
 echo '--------------------------------'
@@ -237,7 +257,10 @@ cat <<EOF
      Go to ${KIDDIE_JENKINS_URL}/configureSecurity/ and uncheck "Enable script
      security for Job DSL scripts"
 2) Download ansible and terraform inside Jenkins and add them to the JENKINS PATH.
-
+     Go to section 'Global properties > Environment variables > List of variables' in
+     ${KIDDIE_JENKINS_URL}/configure/. Then, add something like this:
+      | Name : PATH+EXTRA1
+      | Value: \$HOME/.local/bin
 3) Run seed job to generate Kiddie jobs: ${KIDDIE_JENKINS_URL}/job/Kiddie_seed/
 4) Use Kiddie/Deploy and Kiddie/Destroy jobs to manage the scenario in your AWS account:
      - ${KIDDIE_JENKINS_URL}/job/Kiddie/job/Deploy

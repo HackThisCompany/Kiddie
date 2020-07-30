@@ -147,7 +147,7 @@ Installing pipeline-aws from update center
 ================================
 ```
 
-### 4. Perform "Next Steps" instructions.
+#### 5. Perform "Next Steps" instructions.
 1. Disable "script security for Job DSL scripts" for skipping [script approvals](https://www.jenkins.io/doc/book/managing/script-approval/).
 2. Download ansible and Terraform and add them to the PATH:
     ```
@@ -158,7 +158,7 @@ Installing pipeline-aws from update center
     jenkins@e8bba4e1f82b:~$ wget -O $HOME/.local/bin/terraform.zip https://releases.hashicorp.com/terraform/0.12.29/terraform_0.12.29_linux_amd64.zip
     jenkins@e8bba4e1f82b:~$ cd $HOME/.local/bin/ && unzip terraform.zip
     ```
-    To add the directory `$HOME/.local/bin/` you need to add the following environmental variable in `Manage Jenkins > Configure System` page inside `Global properties > Environment variables > List of variables' configuration items:
+    To add the directory `$HOME/.local/bin/` to the PATH, you need to add the following environmental variable in `Manage Jenkins > Configure System` page inside `Global properties > Environment variables > List of variables` configuration items:
     ```
      Name : PATH+EXTRA1
      Value: $HOME/.local/bin

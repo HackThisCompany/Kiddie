@@ -13,7 +13,7 @@ pipeline {
             description: 'Which Kiddie-terraform branch should be used?'
         )
         string(
-            name: 'DC9ansiblebranch', defaultValue: 'htc',
+            name: 'DC9ansiblebranch', defaultValue: 'master',
             description: 'Which DC-9-ansible branch should be used?'
         )
         string(
@@ -106,12 +106,6 @@ pipeline {
                 parallel(
                     dc9: {
                         sh """
-                        ansible dc9 -i ${env.WORKSPACE}/ansibleinventory.json -m shell -a "yum update -y && yum install -y python3 python3-pip git-core" -e ansible_python_interpreter=/usr/bin/python --become
-                        """
-                        sh """
-                        ansible dc9 -i ${env.WORKSPACE}/ansibleinventory.json -m shell -a "pip3 install -r https://raw.githubusercontent.com/HackThisCompany/DC-9-ansible/htc/tests/requirements.txt" -e ansible_python_interpreter=/usr/bin/python --become
-                        """
-                        sh """
                         cat > dc9-provision.yml <<EOF
                         - name: 'Provide DC-9 server'
                           hosts: dc9
@@ -120,6 +114,7 @@ pipeline {
                             - role: ./DC-9-ansible
                               vars:
                                 ansible_python_interpreter: python3
+                                use_htc_version: yes
                         EOF
                         """.stripIndent()
                         sh """
@@ -127,9 +122,6 @@ pipeline {
                         """
                     },
                     wintermute_straylight: {
-                        sh """
-                        ansible wintermute_straylight -i ${env.WORKSPACE}/ansibleinventory.json -m shell -a "yum update -y && yum install -y python3 python3-pip git-core" -e ansible_python_interpreter=/usr/bin/python --become
-                        """
                         sh """
                         cat > wintermute-straylight-provision.yml <<EOF
                         - name: 'Provide Wintermute Straylight server'

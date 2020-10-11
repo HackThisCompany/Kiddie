@@ -109,7 +109,7 @@ pipeline {
                         cat > dc9-provision.yml <<EOF
                         - name: 'Provide DC-9 server'
                           hosts: dc9
-                          become: yes
+                          gather_facts: no
                           roles:
                             - role: ./DC-9-ansible
                               vars:
@@ -126,7 +126,7 @@ pipeline {
                         cat > wintermute-straylight-provision.yml <<EOF
                         - name: 'Provide Wintermute Straylight server'
                           hosts: wintermute_straylight
-                          become: yes
+                          gather_facts: no
                           roles:
                             - role: ./Wintermute-Straylight-ansible
                               vars:
